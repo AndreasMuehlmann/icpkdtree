@@ -7,12 +7,21 @@ rule cc
 rule link
   command = gcc -o $out $in
 
-rule runProg
+rule mkdir
+  command = mkdir $in
+
+rule run
   command = ./$in
 
+
+build build: mkdir build
+build build/obj: mkdir build/obj
+build build/bin: mkdir build/bin
+
 build build/obj/main.o: cc src/main.c
-build build/obj/mod.o: cc src/mod.c
+build build/obj/kd_tree.o: cc src/kd_tree.c
 
-build build/bin/test: link build/obj/main.o build/obj/mod.o
+build build/bin/icpkdtree: link build/obj/main.o build/obj/kd_tree.o
 
-build run: runProg build/bin/test
+build run: run build/bin/icpkdtree
+default build/bin/icpkdtree
