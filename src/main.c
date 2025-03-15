@@ -16,6 +16,14 @@ int main() {
         points[i].x = (double)(rand() % (200 * maxCoord + 1) - maxCoord * 100) / 100.0;
         points[i].y = (double)(rand() % (200 * maxCoord + 1) - maxCoord * 100) / 100.0;
     }
-    KdTree kdTree;
-    kdInit(&kdTree, points, pointsLength);
+
+    printf("points:\n");
+    for (size_t i = 0; i < pointsLength; i++) {
+        printf("%f, %f; ", points[i].x, points[i].y);
+    }
+    printf("\n");
+
+    KdTree* kdTree = kdInit(points, pointsLength);
+    kdPrint(kdTree);
+    kdDeinit(kdTree);
 }

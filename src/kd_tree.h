@@ -12,14 +12,16 @@ typedef struct {
 
 struct Node {
     Point point;
-    Node *children;
-    size_t childLength;
+    Node *leftChild;
+    Node *rightChild;
 };
 
 typedef struct {
     Node *root;
 } KdTree;
 
-void kdInit(KdTree* kdTree, Point* points, size_t pointsLength);
+KdTree* kdInit(Point* points, size_t pointsLength);
+void kdDeinit(KdTree* kdTree);
+void kdPrint(KdTree* kdTree);
 
 #endif 

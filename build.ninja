@@ -1,11 +1,11 @@
-cflags = -Wall -Wextra -Wpedantic
+cflags = -Wall -Wextra -Wpedantic -fsanitize=address -g
 
 rule cc
   depfile = $out.d
   command = gcc -MD -MF $out.d $cflags -c $in -o $out
 
 rule link
-  command = gcc -o $out $in
+  command = gcc $cflags -o $out $in
 
 rule mkdir
   command = mkdir $in
@@ -18,10 +18,11 @@ build build: mkdir build
 build build/obj: mkdir build/obj
 build build/bin: mkdir build/bin
 
-build build/obj/main.o: cc src/main.c
+build build/obj/array_list.o: cc src/array_list.c
 build build/obj/kd_tree.o: cc src/kd_tree.c
+build build/obj/main.o: cc src/main.c
 
-build build/bin/icpkdtree: link build/obj/main.o build/obj/kd_tree.o
+build build/bin/icpkdtree: link build/obj/main.o build/obj/kd_tree.o build/obj/array_list.o
 
 build run: run build/bin/icpkdtree
 default build/bin/icpkdtree
