@@ -8,9 +8,20 @@
 #include "array_list.h"
 
 
-int compareX(const void* a, const void* b) {
-    double value1 = ((Point*)a)->x;
-    double value2 = ((Point*)b)->x;
+size_t globalDimension = 0;
+
+
+double getDimension(Point* point, size_t dimension) {
+    if (dimension == 0) {
+        return point->x;
+    }
+    return point->y;
+}
+
+
+int compare(const void* a, const void* b) {
+    double value1 = getDimension((Point*)a, globalDimension);
+    double value2 = getDimension((Point*)b, globalDimension);
     if (value1 > value2) {
         return 1;
     } else if (value1 < value2) {
@@ -20,94 +31,31 @@ int compareX(const void* a, const void* b) {
     }
 }
 
-int compareY(const void* a, const void* b) {
-    double value1 = ((Point*)a)->y;
-    double value2 = ((Point*)b)->y;
-    if (value1 > value2) {
-        return 1;
-    } else if (value1 < value2) {
-        return -1;
-    } else {
-        return 0;
+Node* kdInitNode(Point* points, size_t pointsLength, size_t dimension) {
+    if (pointsLength == 0) {
+        return NULL;
     }
-}
-
-double getX(Point point) {
-    return point.x;
-}
-
-double getY(Point point) {
-    return point.y;
-}
-
-ssize_t binarySearch(Point *points, size_t pointsLength, double searched, double (*getCoordinate)(Point)) {
-    size_t low = 0;
-    size_t high = pointsLength - 1;
-
-    while (low < high) {
-        size_t mid = low + (high - low) / 2;
-        if (getCoordinate(points[mid]) < searched) {
-            low = mid + 1;
-        } else if (getCoordinate(points[mid]) > searched) {
-            high = mid - 1;
-        } else {
-            return mid;
-        }
-    }
-    if (getCoordinate(points[low]) == searched) {
-        return low;
-    }
-    return -1;
-}
-
-size_t max(ssize_t value1, ssize_t value2) {
-    if (value1 > value2) {
-        return value1;
-    } else {
-        return value2;
-    }
-}
-
-Node* kdInitNode(Point* sortedX, size_t sortedXLength, Point* sortedY, size_t sortedYLength, bool isDimensionX) {
-    if (isDimensionX) {
-        if (sortedXLength == 0) {
-            return NULL;
-        }
-        Node* node = (Node*)malloc(sizeof(Node));
-        if (sortedXLength == 1) {
-            node->point = sortedX[0];
-            node->leftChild = NULL;
-            node->rightChild = NULL;
-            return node;
-        }
-        node->point = sortedX[sortedXLength / 2];
-
-
-        ssize_t pivot = binarySearch(sortedY, sortedYLength, node->point.y, getY);
-        if (pivot == -1) {
-            printf("Couldn't find y coordinate\n");
-            exit(1);
-        }
-
-        node->leftChild = kdInitNode(sortedX, sortedXLength / 2, sortedY, pivot, isDimensionX); // add the not to isDimensionX
-        node->rightChild = kdInitNode(sortedX + sortedXLength / 2 + 1, sortedXLength / 2 - 1, sortedY + pivot + 1, max(0, sortedYLength - pivot - 1), isDimensionX);
+    Node* node = (Node*)malloc(sizeof(Node));
+    if (pointsLength == 1) {
+        node->point = points[0];
+        node->leftChild = NULL;
+        node->rightChild = NULL;
         return node;
     }
-    return NULL;
+
+    globalDimension = dimension;
+    qsort(points, pointsLength, sizeof(Point), compare);
+
+    size_t newDimension = (dimension + 1) % 2;
+    node->point = points[pointsLength / 2];
+    node->leftChild = kdInitNode(points, pointsLength / 2, newDimension);
+    node->rightChild = kdInitNode(points + pointsLength / 2 + 1, pointsLength / 2 - (1 - pointsLength % 2), newDimension);
+    return node;
 }
 
 KdTree* kdInit(Point* points, size_t pointsLength) {
     KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
-    qsort(points, pointsLength, sizeof(Point), compareX);
-
-    Point* pointsSortedY = (Point*)malloc(sizeof(Point) * pointsLength);
-    memcpy(pointsSortedY, points, sizeof(Point) * pointsLength);
-
-    qsort(pointsSortedY, pointsLength, sizeof(Point), compareY);
-
-    kdTree->root = kdInitNode(points, pointsLength, pointsSortedY, pointsLength, true);
-
-    free(pointsSortedY);
+    kdTree->root = kdInitNode(points, pointsLength, 0);
     return kdTree;
 }
 
@@ -178,4 +126,56 @@ void kdPrint(KdTree* kdTree) {
     printf("\n");
     arrayListDeinit(queue);
     arrayListDeinit(layers);
+}
+
+double calcSquaredDistance(Point point1, Point point2) {
+    double xDiff = point2.x - point1.x;
+    double yDiff = point2.y - point1.x;
+    return xDiff * xDiff + yDiff * yDiff;
+}
+
+Point kdNearestNeighborNode(Node* node, Point point, size_t dimension) {
+    double treeValue = getDimension(&node->point, dimension);
+    double value = getDimension(&point, dimension);
+
+    size_t newDimension = (dimension + 1) % 2;
+
+    Point nearestNeighbor;
+    Node *otherSubtree;
+    if (value < treeValue) {
+        if (node->leftChild == NULL) {
+            return node->point;
+        }
+        nearestNeighbor = kdNearestNeighborNode(node->leftChild, point, newDimension);
+        otherSubtree = node->rightChild;
+    } else {
+        if (node->rightChild == NULL) {
+            return node->point;
+        }
+        nearestNeighbor = kdNearestNeighborNode(node->rightChild, point, newDimension);
+        otherSubtree = node->leftChild;
+    }
+
+    
+    if (calcSquaredDistance(point, node->point) < calcSquaredDistance(point, nearestNeighbor)) {
+        nearestNeighbor = node->point;     
+    }
+
+    if (otherSubtree == NULL) {
+        return nearestNeighbor;
+    }
+
+    double distanceLineToPoint = getDimension(&nearestNeighbor, dimension) - value;
+    if (distanceLineToPoint * distanceLineToPoint < calcSquaredDistance(point, nearestNeighbor)) {
+        Point nearestNeighborOtherSubtree = kdNearestNeighborNode(otherSubtree, point, newDimension);
+        if (calcSquaredDistance(point, nearestNeighborOtherSubtree) < calcSquaredDistance(point, nearestNeighbor)) {
+            nearestNeighbor = nearestNeighborOtherSubtree;     
+        }
+    }
+
+    return nearestNeighbor;
+}
+
+Point kdNearestNeighbor(KdTree* kdTree, Point point) {
+    return kdNearestNeighborNode(kdTree->root, point, 0);
 }

@@ -1,4 +1,4 @@
-cflags = -Wall -Wextra -Wpedantic -fsanitize=address -g
+cflags = -Wall -Wextra -Wpedantic -fsanitize=address -g -lm
 
 rule cc
   depfile = $out.d

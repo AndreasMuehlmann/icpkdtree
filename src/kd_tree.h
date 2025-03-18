@@ -23,6 +23,7 @@ typedef struct {
 KdTree* kdInit(Point* points, size_t pointsLength);
 void kdDeinit(KdTree* kdTree);
 void kdPrint(KdTree* kdTree);
-ssize_t binarySearch(Point *points, size_t pointsLength, double searched, double (*getCoordinate)(Point));
+double calcSquaredDistance(Point point1, Point point2);
+Point kdNearestNeighbor(KdTree* kdTree, Point point);
 
 #endif 
