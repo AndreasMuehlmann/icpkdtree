@@ -32,6 +32,42 @@ int compareY(const void* a, const void* b) {
     }
 }
 
+double getX(Point point) {
+    return point.x;
+}
+
+double getY(Point point) {
+    return point.y;
+}
+
+ssize_t binarySearch(Point *points, size_t pointsLength, double searched, double (*getCoordinate)(Point)) {
+    size_t low = 0;
+    size_t high = pointsLength - 1;
+
+    while (low < high) {
+        size_t mid = low + (high - low) / 2;
+        if (getCoordinate(points[mid]) < searched) {
+            low = mid + 1;
+        } else if (getCoordinate(points[mid]) > searched) {
+            high = mid - 1;
+        } else {
+            return mid;
+        }
+    }
+    if (getCoordinate(points[low]) == searched) {
+        return low;
+    }
+    return -1;
+}
+
+size_t max(ssize_t value1, ssize_t value2) {
+    if (value1 > value2) {
+        return value1;
+    } else {
+        return value2;
+    }
+}
+
 Node* kdInitNode(Point* sortedX, size_t sortedXLength, Point* sortedY, size_t sortedYLength, bool isDimensionX) {
     if (isDimensionX) {
         if (sortedXLength == 0) {
@@ -45,8 +81,16 @@ Node* kdInitNode(Point* sortedX, size_t sortedXLength, Point* sortedY, size_t so
             return node;
         }
         node->point = sortedX[sortedXLength / 2];
-        node->leftChild = kdInitNode(sortedX, sortedXLength / 2, sortedY, sortedYLength, isDimensionX); // add the not to isDimensionX
-        node->rightChild = kdInitNode(sortedX + sortedXLength / 2 + 1, sortedXLength / 2 - 1, sortedY, sortedYLength, isDimensionX);
+
+
+        ssize_t pivot = binarySearch(sortedY, sortedYLength, node->point.y, getY);
+        if (pivot == -1) {
+            printf("Couldn't find y coordinate\n");
+            exit(1);
+        }
+
+        node->leftChild = kdInitNode(sortedX, sortedXLength / 2, sortedY, pivot, isDimensionX); // add the not to isDimensionX
+        node->rightChild = kdInitNode(sortedX + sortedXLength / 2 + 1, sortedXLength / 2 - 1, sortedY + pivot + 1, max(0, sortedYLength - pivot - 1), isDimensionX);
         return node;
     }
     return NULL;
