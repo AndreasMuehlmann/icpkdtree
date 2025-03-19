@@ -165,8 +165,7 @@ Point kdNearestNeighborNode(Node* node, Point point, size_t dimension) {
         return nearestNeighbor;
     }
 
-    double distanceLineToPoint = getDimension(&nearestNeighbor, dimension) - value;
-    if (distanceLineToPoint * distanceLineToPoint < calcSquaredDistance(point, nearestNeighbor)) {
+    if ((treeValue - value) * (treeValue - value) < calcSquaredDistance(nearestNeighbor, point)) {
         Point nearestNeighborOtherSubtree = kdNearestNeighborNode(otherSubtree, point, newDimension);
         if (calcSquaredDistance(point, nearestNeighborOtherSubtree) < calcSquaredDistance(point, nearestNeighbor)) {
             nearestNeighbor = nearestNeighborOtherSubtree;     
