@@ -31,7 +31,7 @@ int compare(const void* a, const void* b) {
     }
 }
 
-Node* kdInitNode(Point* points, size_t pointsLength, size_t dimension) {
+Node* kdInitNodeMedian(Point* points, size_t pointsLength, size_t dimension) {
     if (pointsLength == 0) {
         return NULL;
     }
@@ -48,14 +48,49 @@ Node* kdInitNode(Point* points, size_t pointsLength, size_t dimension) {
 
     size_t newDimension = (dimension + 1) % 2;
     node->point = points[pointsLength / 2];
-    node->leftChild = kdInitNode(points, pointsLength / 2, newDimension);
-    node->rightChild = kdInitNode(points + pointsLength / 2 + 1, pointsLength / 2 - (1 - pointsLength % 2), newDimension);
+    node->leftChild = kdInitNodeMedian(points, pointsLength / 2, newDimension);
+    node->rightChild = kdInitNodeMedian(points + pointsLength / 2 + 1, pointsLength / 2 - (1 - pointsLength % 2), newDimension);
     return node;
+}
+
+void kdInsertNode(Node *node, Node *nodeToInsert, size_t dimension) {
+    size_t newDimension = (dimension + 1) % 2;
+    if  (getDimension(&nodeToInsert->point, dimension) < getDimension(&node->point, dimension)) {
+        if (node->leftChild == NULL) {
+            node->leftChild = nodeToInsert;
+        } else {
+            kdInsertNode(node->leftChild, nodeToInsert, newDimension);
+        }
+    } else {
+        if (node->rightChild == NULL) {
+            node->rightChild = nodeToInsert;
+        } else {
+            kdInsertNode(node->rightChild, nodeToInsert, newDimension);
+        }
+    }
+}
+
+void kdInsert(KdTree* kdTree, Point point) {
+    Node* node = (Node*)malloc(sizeof(Node));
+    node->point = point;
+    node->leftChild = NULL;
+    node->rightChild = NULL;
+    if (kdTree->root == NULL) {
+        kdTree->root = node;
+        return;
+    }
+    kdInsertNode(kdTree->root, node, 0);
+}
+
+KdTree* kdInitEmpty() {
+    KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
+    kdTree->root = NULL;
+    return kdTree;
 }
 
 KdTree* kdInit(Point* points, size_t pointsLength) {
     KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
-    kdTree->root = kdInitNode(points, pointsLength, 0);
+    kdTree->root = kdInitNodeMedian(points, pointsLength, 0);
     return kdTree;
 }
 
@@ -73,6 +108,22 @@ void kdDeinit(KdTree* kdTree) {
         kdDeinitNode(kdTree->root);
     }
     free(kdTree);
+}
+
+size_t kdGetDepthNode(Node* node) {
+    if (node == NULL) {
+        return 0;
+    }
+    size_t leftDepth = kdGetDepthNode(node->leftChild);
+    size_t rightDepth = kdGetDepthNode(node->rightChild);
+    if (rightDepth > leftDepth) {
+        return rightDepth + 1;
+    }
+    return leftDepth + 1;
+}
+
+size_t kdGetDepth(KdTree* kdTree) {
+    return kdGetDepthNode(kdTree->root);
 }
 
 typedef struct {

@@ -27,24 +27,31 @@ int main() {
         points[i].x = (double)(rand() % (200 * maxCoord + 1) - maxCoord * 100) / 100.0;
         points[i].y = (double)(rand() % (200 * maxCoord + 1) - maxCoord * 100) / 100.0;
     }
-   //printf("points:\n");
-   //for (size_t i = 0; i < pointsLength; i++) {
-   //    printf("%.2f, %.2f; ", points[i].x, points[i].y);
-   //}
-   //printf("\n");
+    //printf("points:\n");
+    //for (size_t i = 0; i < pointsLength; i++) {
+    //    printf("%.2f, %.2f; ", points[i].x, points[i].y);
+    //}
+    //printf("\n");
 
     struct timespec start, finish;
     timespec_get(&start, TIME_UTC);
+    #define __INSERT__
+    #ifdef __INSERT__
+    KdTree* kdTree = kdInitEmpty();
+    for (size_t i = 0; i < pointsLength; i++) {
+        kdInsert(kdTree, points[i]);
+    }
+    #else
     KdTree* kdTree = kdInit(points, pointsLength);
+    #endif
     timespec_get(&finish, TIME_UTC);
     double elapsed_ms = (double)(finish.tv_sec - start.tv_sec) * 1000.0 +
         (double)(finish.tv_nsec - start.tv_nsec) / 1000000.0;
     printf("Elapsed time init kd tree: %.5f ms\n", elapsed_ms);
+    printf("Depth of kd tree: %zu\n", kdGetDepth(kdTree));
     //kdPrint(kdTree);
 
     Point searchedPoint = {0.5, 0.5};
-
-
 
     timespec_get(&start, TIME_UTC);
     Point point = kdNearestNeighbor(kdTree, searchedPoint);
