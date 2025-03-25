@@ -8,15 +8,83 @@
 #include "array_list.h"
 
 
-size_t globalDimension = 0;
-
-
 double getDimension(Point* point, size_t dimension) {
     if (dimension == 0) {
         return point->x;
     }
     return point->y;
 }
+
+size_t partition(Point *points, size_t length, size_t dimension) {
+    Point pivot = points[0];
+    int left = -1;
+    int right = length;
+    while (1) {
+        do {
+            left++;
+        } while (getDimension(&points[left], dimension) < getDimension(&pivot, dimension));
+        do {
+            right--;
+        } while (getDimension(&points[right], dimension) > getDimension(&pivot, dimension));
+
+        if (left >= right) {
+            bool foundPivot = false;
+            for (size_t i = 0; i < length; i++) {
+                if (getDimension(&points[i], dimension) == getDimension(&pivot, dimension)) {
+                    foundPivot = true;
+                    continue;
+                }
+                if (foundPivot && getDimension(&points[i], dimension) < getDimension(&pivot, dimension)) {
+                    printf("Error\n");
+                    printf("Index %zu not partitioned correctly.\n", i);
+                    printf("pivot: %.2f\n", getDimension(&pivot, dimension));
+                    printf("partitioned points:\n");
+                    for (size_t i = 0; i < length; i++) {
+                        printf("%.2f, ", getDimension(&points[i], dimension));
+                    }
+                    printf("\n");
+                    exit(1);
+                }
+                if (!foundPivot && getDimension(&points[i], dimension) > getDimension(&pivot, dimension)) {
+                    printf("Error\n");
+                    printf("Index %zu not partitioned correctly.\n", i);
+                    printf("pivot: %.2f\n", getDimension(&pivot, dimension));
+                    printf("partitioned points:\n");
+                    for (size_t i = 0; i < length; i++) {
+                        printf("%.2f, ", getDimension(&points[i], dimension));
+                    }
+                    printf("\n");
+                    exit(1);
+                }
+            }
+            return right;
+            if (right - 1 >= 0 && getDimension(&points[right - 1], dimension) == getDimension(&pivot, dimension)) {
+                return right - 1;
+            }
+            else if (getDimension(&points[right], dimension) == getDimension(&pivot, dimension)) {
+                return right;
+            }
+            else if ((size_t)(right + 1) < length && getDimension(&points[right + 1], dimension) == getDimension(&pivot, dimension)) {
+                return right + 1;
+            } else {
+                printf("Error\n");
+                printf("pivot: %.2f\n", getDimension(&pivot, dimension));
+                printf("pivot_index %d\n", right);
+                printf("partitioned points:\n");
+                for (size_t i = 0; i < length; i++) {
+                    printf("%.2f, ", getDimension(&points[i], dimension));
+                }
+                printf("\n");
+                exit(1);
+            }
+        }
+        Point temp = points[left];
+        points[left] = points[right];
+        points[right] = temp;
+    }
+}
+
+size_t globalDimension = 0;
 
 
 int compare(const void* a, const void* b) {
@@ -53,6 +121,61 @@ Node* kdInitNodeMedian(Point* points, size_t pointsLength, size_t dimension) {
     return node;
 }
 
+Node* kdInitNode(Point* points, size_t pointsLength, size_t dimension) {
+    if (pointsLength == 0) {
+        return NULL;
+    }
+    Node* node = (Node*)malloc(sizeof(Node));
+    if (pointsLength == 1) {
+        node->point = points[0];
+        node->leftChild = NULL;
+        node->rightChild = NULL;
+        return node;
+    }
+
+    size_t pivot_index = partition(points, pointsLength, dimension);
+
+    size_t newDimension = (dimension + 1) % 2;
+    node->point = points[pivot_index];
+    node->leftChild = kdInitNode(points, pivot_index, newDimension);
+    node->rightChild = kdInitNode(points + pivot_index + 1, pointsLength - pivot_index - 1, newDimension);
+    return node;
+}
+
+KdTree* kdInitEmpty() {
+    KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
+    kdTree->root = NULL;
+    return kdTree;
+}
+
+KdTree* kdInit(Point* points, size_t pointsLength) {
+    KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
+    kdTree->root = kdInitNode(points, pointsLength, 0);
+    return kdTree;
+}
+
+KdTree* kdInitBalanced(Point* points, size_t pointsLength) {
+    KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
+    kdTree->root = kdInitNodeMedian(points, pointsLength, 0);
+    return kdTree;
+}
+
+void kdDeinitNode(Node* node) {
+    if (node == NULL) {
+        return;
+    }
+    kdDeinitNode(node->leftChild);
+    kdDeinitNode(node->rightChild);
+    free(node);
+}
+
+void kdDeinit(KdTree* kdTree) {
+    if (kdTree->root != NULL) {
+        kdDeinitNode(kdTree->root);
+    }
+    free(kdTree);
+}
+
 void kdInsertNode(Node *node, Node *nodeToInsert, size_t dimension) {
     size_t newDimension = (dimension + 1) % 2;
     if  (getDimension(&nodeToInsert->point, dimension) < getDimension(&node->point, dimension)) {
@@ -80,34 +203,6 @@ void kdInsert(KdTree* kdTree, Point point) {
         return;
     }
     kdInsertNode(kdTree->root, node, 0);
-}
-
-KdTree* kdInitEmpty() {
-    KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
-    kdTree->root = NULL;
-    return kdTree;
-}
-
-KdTree* kdInit(Point* points, size_t pointsLength) {
-    KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
-    kdTree->root = kdInitNodeMedian(points, pointsLength, 0);
-    return kdTree;
-}
-
-void kdDeinitNode(Node* node) {
-    if (node == NULL) {
-        return;
-    }
-    kdDeinitNode(node->leftChild);
-    kdDeinitNode(node->rightChild);
-    free(node);
-}
-
-void kdDeinit(KdTree* kdTree) {
-    if (kdTree->root != NULL) {
-        kdDeinitNode(kdTree->root);
-    }
-    free(kdTree);
 }
 
 size_t kdGetDepthNode(Node* node) {

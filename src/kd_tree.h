@@ -20,14 +20,17 @@ typedef struct {
     Node *root;
 } KdTree;
 
+
+KdTree* kdInitBalanced(Point* points, size_t pointsLength);
 KdTree* kdInit(Point* points, size_t pointsLength);
-void kdDeinit(KdTree* kdTree);
-void kdPrint(KdTree* kdTree);
-double calcSquaredDistance(Point point1, Point point2);
-Point kdNearestNeighbor(KdTree* kdTree, Point point);
-size_t kdGetDepthNode(Node* node);
-size_t kdGetDepth(KdTree* kdTree);
 KdTree* kdInitEmpty();
+void kdDeinit(KdTree* kdTree);
 void kdInsert(KdTree* kdTree, Point point);
+Point kdNearestNeighbor(KdTree* kdTree, Point point);
+size_t kdGetDepth(KdTree* kdTree);
+void kdPrint(KdTree* kdTree);
+size_t kdGetDepthNode(Node* node);
+double calcSquaredDistance(Point point1, Point point2);
+size_t partition(Point *points, size_t length, size_t dimension);
 
 #endif 

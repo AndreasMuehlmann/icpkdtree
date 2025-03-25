@@ -19,23 +19,31 @@ Point arrayNearestNeighbor(Point *points, size_t pointsLength, Point point) {
 int main() {
     srand(time(0));
 
-    const int32_t maxCoord = 1000;
-    const size_t pointsLength = 1000000;
+    const int32_t maxCoord = 10;
+    const size_t pointsLength = 10;
     
     Point* points = (Point*)malloc(sizeof(Point) * pointsLength);
     for (size_t i = 0; i < pointsLength; i++) {
         points[i].x = (double)(rand() % (200 * maxCoord + 1) - maxCoord * 100) / 100.0;
         points[i].y = (double)(rand() % (200 * maxCoord + 1) - maxCoord * 100) / 100.0;
     }
-    //printf("points:\n");
-    //for (size_t i = 0; i < pointsLength; i++) {
-    //    printf("%.2f, %.2f; ", points[i].x, points[i].y);
-    //}
-    //printf("\n");
+    
+    printf("not partitioned points:\n");
+    for (size_t i = 0; i < pointsLength; i++) {
+        printf("%.2f, ", points[i].x);
+    }
+    printf("\n");
+    printf("pivot_index %zu\n", partition(points, pointsLength, 0));
+    printf("partitioned points:\n");
+    for (size_t i = 0; i < pointsLength; i++) {
+        printf("%.2f, ", points[i].x);
+    }
+    printf("\n");
 
+    /*
     struct timespec start, finish;
     timespec_get(&start, TIME_UTC);
-    #define __INSERT__
+    // #define __INSERT__
     #ifdef __INSERT__
     KdTree* kdTree = kdInitEmpty();
     for (size_t i = 0; i < pointsLength; i++) {
@@ -72,5 +80,6 @@ int main() {
     printf("Elapsed time searching nearest neighbor array: %.5f ms\n", elapsed_ms);
 
     kdDeinit(kdTree);
+    */
     free(points);
 }
