@@ -19,7 +19,7 @@ Point arrayNearestNeighbor(Point *points, size_t pointsLength, Point point) {
 int main() {
     srand(time(0));
 
-    const int32_t maxCoord = 100000;
+    const int32_t maxCoord = 1000;
     const size_t pointsLength = 1000000;
     
     Point* points = (Point*)malloc(sizeof(Point) * pointsLength);

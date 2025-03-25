@@ -33,6 +33,45 @@ size_t partition(Point *points, size_t length, size_t dimension) {
     return i;
 }
 
+size_t partitionHoare(Point *points, size_t length, size_t dimension) {
+    double pivot = getDimension(&points[0], dimension);
+    int left = -1;
+    int right = length;
+    while (1) {
+        do {
+            left++;
+        } while (getDimension(&points[left], dimension) < pivot);
+        do {
+            right--;
+        } while (getDimension(&points[right], dimension) > pivot);
+
+        if (left >= right) {
+            return right;
+        }
+        Point temp = points[left];
+        points[left] = points[right];
+        points[right] = temp;
+    }
+}
+
+size_t quickselect(Point *points, size_t left, size_t right, size_t k, size_t dimension) {
+    //printf("quickselect\n");
+    while (true) {
+        if (left == right) {
+            return left;
+        }
+        size_t pivotIndex = left + partition(points + left, right - left + 1, dimension);
+        //printf("left: %zu, right: %zu, k: %zu, pivot index: %zu\n", left, right, k, pivotIndex);
+        if (pivotIndex == k) {
+            return k;
+        } else if (k < pivotIndex) {
+            right =  pivotIndex - 1;
+        } else {
+            left = pivotIndex + 1;
+        }
+    }
+}
+
 size_t globalDimension = 0;
 
 
@@ -82,8 +121,8 @@ Node* kdInitNode(Point* points, size_t pointsLength, size_t dimension) {
         return node;
     }
 
-
-    size_t pivot_index = partition(points, pointsLength, dimension);
+    size_t pivot_index = quickselect(points, 0, pointsLength - 1, pointsLength / 2, dimension);
+    // size_t pivot_index = partition(points, pointsLength, dimension);
 
     size_t newDimension = (dimension + 1) % 2;
     node->point = points[pivot_index];
