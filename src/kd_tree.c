@@ -16,72 +16,21 @@ double getDimension(Point* point, size_t dimension) {
 }
 
 size_t partition(Point *points, size_t length, size_t dimension) {
-    Point pivot = points[0];
-    int left = -1;
-    int right = length;
-    while (1) {
-        do {
-            left++;
-        } while (getDimension(&points[left], dimension) < getDimension(&pivot, dimension));
-        do {
-            right--;
-        } while (getDimension(&points[right], dimension) > getDimension(&pivot, dimension));
+    double pivot = getDimension(&points[length - 1], dimension);
+    size_t i = 0;
 
-        if (left >= right) {
-            bool foundPivot = false;
-            for (size_t i = 0; i < length; i++) {
-                if (getDimension(&points[i], dimension) == getDimension(&pivot, dimension)) {
-                    foundPivot = true;
-                    continue;
-                }
-                if (foundPivot && getDimension(&points[i], dimension) < getDimension(&pivot, dimension)) {
-                    printf("Error\n");
-                    printf("Index %zu not partitioned correctly.\n", i);
-                    printf("pivot: %.2f\n", getDimension(&pivot, dimension));
-                    printf("partitioned points:\n");
-                    for (size_t i = 0; i < length; i++) {
-                        printf("%.2f, ", getDimension(&points[i], dimension));
-                    }
-                    printf("\n");
-                    exit(1);
-                }
-                if (!foundPivot && getDimension(&points[i], dimension) > getDimension(&pivot, dimension)) {
-                    printf("Error\n");
-                    printf("Index %zu not partitioned correctly.\n", i);
-                    printf("pivot: %.2f\n", getDimension(&pivot, dimension));
-                    printf("partitioned points:\n");
-                    for (size_t i = 0; i < length; i++) {
-                        printf("%.2f, ", getDimension(&points[i], dimension));
-                    }
-                    printf("\n");
-                    exit(1);
-                }
-            }
-            return right;
-            if (right - 1 >= 0 && getDimension(&points[right - 1], dimension) == getDimension(&pivot, dimension)) {
-                return right - 1;
-            }
-            else if (getDimension(&points[right], dimension) == getDimension(&pivot, dimension)) {
-                return right;
-            }
-            else if ((size_t)(right + 1) < length && getDimension(&points[right + 1], dimension) == getDimension(&pivot, dimension)) {
-                return right + 1;
-            } else {
-                printf("Error\n");
-                printf("pivot: %.2f\n", getDimension(&pivot, dimension));
-                printf("pivot_index %d\n", right);
-                printf("partitioned points:\n");
-                for (size_t i = 0; i < length; i++) {
-                    printf("%.2f, ", getDimension(&points[i], dimension));
-                }
-                printf("\n");
-                exit(1);
-            }
+    for (size_t j = i; j < length - 1; j++) {
+        if (getDimension(&points[j], dimension) <= pivot) {
+            Point temp = points[i];
+            points[i] = points[j];
+            points[j] = temp;
+            i++;
         }
-        Point temp = points[left];
-        points[left] = points[right];
-        points[right] = temp;
     }
+    Point temp = points[i];
+    points[i] = points[length - 1];
+    points[length - 1] = temp;
+    return i;
 }
 
 size_t globalDimension = 0;
@@ -132,6 +81,7 @@ Node* kdInitNode(Point* points, size_t pointsLength, size_t dimension) {
         node->rightChild = NULL;
         return node;
     }
+
 
     size_t pivot_index = partition(points, pointsLength, dimension);
 
