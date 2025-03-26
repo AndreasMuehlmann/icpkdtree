@@ -18,11 +18,14 @@ build build: mkdir build
 build build/obj: mkdir build/obj
 build build/bin: mkdir build/bin
 
+
+build build/obj/point.o: cc src/point.c
+build build/obj/array_nearest_neighbor.o: cc src/array_nearest_neighbor.c
 build build/obj/array_list.o: cc src/array_list.c
 build build/obj/kd_tree.o: cc src/kd_tree.c
 build build/obj/main.o: cc src/main.c
 
-build build/bin/icpkdtree: link build/obj/main.o build/obj/kd_tree.o build/obj/array_list.o
+build build/bin/icpkdtree: link build/obj/main.o build/obj/kd_tree.o build/obj/array_list.o build/obj/array_nearest_neighbor.o build/obj/point.o
 
 build run: run build/bin/icpkdtree
 default build/bin/icpkdtree

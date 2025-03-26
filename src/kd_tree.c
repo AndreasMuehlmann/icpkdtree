@@ -1,19 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
 
 #include "kd_tree.h"
 #include "array_list.h"
 
-
-double getDimension(Point* point, size_t dimension) {
-    if (dimension == 0) {
-        return point->x;
-    }
-    return point->y;
-}
 
 size_t partition(Point *points, size_t length, size_t dimension) {
     double pivot = getDimension(&points[length - 1], dimension);
@@ -33,35 +25,12 @@ size_t partition(Point *points, size_t length, size_t dimension) {
     return i;
 }
 
-size_t partitionHoare(Point *points, size_t length, size_t dimension) {
-    double pivot = getDimension(&points[0], dimension);
-    int left = -1;
-    int right = length;
-    while (1) {
-        do {
-            left++;
-        } while (getDimension(&points[left], dimension) < pivot);
-        do {
-            right--;
-        } while (getDimension(&points[right], dimension) > pivot);
-
-        if (left >= right) {
-            return right;
-        }
-        Point temp = points[left];
-        points[left] = points[right];
-        points[right] = temp;
-    }
-}
-
 size_t quickselect(Point *points, size_t left, size_t right, size_t k, size_t dimension) {
-    //printf("quickselect\n");
     while (true) {
         if (left == right) {
             return left;
         }
         size_t pivotIndex = left + partition(points + left, right - left + 1, dimension);
-        //printf("left: %zu, right: %zu, k: %zu, pivot index: %zu\n", left, right, k, pivotIndex);
         if (pivotIndex == k) {
             return k;
         } else if (k < pivotIndex) {
@@ -70,43 +39,6 @@ size_t quickselect(Point *points, size_t left, size_t right, size_t k, size_t di
             left = pivotIndex + 1;
         }
     }
-}
-
-size_t globalDimension = 0;
-
-
-int compare(const void* a, const void* b) {
-    double value1 = getDimension((Point*)a, globalDimension);
-    double value2 = getDimension((Point*)b, globalDimension);
-    if (value1 > value2) {
-        return 1;
-    } else if (value1 < value2) {
-        return -1;
-    } else {
-        return 0;
-    }
-}
-
-Node* kdInitNodeMedian(Point* points, size_t pointsLength, size_t dimension) {
-    if (pointsLength == 0) {
-        return NULL;
-    }
-    Node* node = (Node*)malloc(sizeof(Node));
-    if (pointsLength == 1) {
-        node->point = points[0];
-        node->leftChild = NULL;
-        node->rightChild = NULL;
-        return node;
-    }
-
-    globalDimension = dimension;
-    qsort(points, pointsLength, sizeof(Point), compare);
-
-    size_t newDimension = (dimension + 1) % 2;
-    node->point = points[pointsLength / 2];
-    node->leftChild = kdInitNodeMedian(points, pointsLength / 2, newDimension);
-    node->rightChild = kdInitNodeMedian(points + pointsLength / 2 + 1, pointsLength / 2 - (1 - pointsLength % 2), newDimension);
-    return node;
 }
 
 Node* kdInitNode(Point* points, size_t pointsLength, size_t dimension) {
@@ -122,7 +54,6 @@ Node* kdInitNode(Point* points, size_t pointsLength, size_t dimension) {
     }
 
     size_t pivot_index = quickselect(points, 0, pointsLength - 1, pointsLength / 2, dimension);
-    // size_t pivot_index = partition(points, pointsLength, dimension);
 
     size_t newDimension = (dimension + 1) % 2;
     node->point = points[pivot_index];
@@ -140,12 +71,6 @@ KdTree* kdInitEmpty() {
 KdTree* kdInit(Point* points, size_t pointsLength) {
     KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
     kdTree->root = kdInitNode(points, pointsLength, 0);
-    return kdTree;
-}
-
-KdTree* kdInitBalanced(Point* points, size_t pointsLength) {
-    KdTree* kdTree = (KdTree*)malloc(sizeof(KdTree));
-    kdTree->root = kdInitNodeMedian(points, pointsLength, 0);
     return kdTree;
 }
 
@@ -261,12 +186,6 @@ void kdPrint(KdTree* kdTree) {
     printf("\n");
     arrayListDeinit(queue);
     arrayListDeinit(layers);
-}
-
-double calcSquaredDistance(Point point1, Point point2) {
-    double xDiff = point2.x - point1.x;
-    double yDiff = point2.y - point1.x;
-    return xDiff * xDiff + yDiff * yDiff;
 }
 
 Point kdNearestNeighborNode(Node* node, Point point, size_t dimension) {

@@ -3,12 +3,9 @@
 
 #include <stdlib.h>
 
-typedef struct Node Node;
+#include "point.h"
 
-typedef struct {
-    double x;
-    double y;
-} Point;
+typedef struct Node Node;
 
 struct Node {
     Point point;
@@ -21,7 +18,6 @@ typedef struct {
 } KdTree;
 
 
-KdTree* kdInitBalanced(Point* points, size_t pointsLength);
 KdTree* kdInit(Point* points, size_t pointsLength);
 KdTree* kdInitEmpty();
 void kdDeinit(KdTree* kdTree);
